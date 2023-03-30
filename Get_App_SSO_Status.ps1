@@ -9,7 +9,6 @@ foreach ($app in $arrAAD_Applications) {
     $strEntAppObjectID = $app.Id
     $strAppID = $app.AppId
 
-
     $arrEntAppCertificateRaw = @()
     $strPreferredSSOMode = ""
     $arrAppWebRaw = @()
