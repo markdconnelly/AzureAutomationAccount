@@ -8,4 +8,21 @@ foreach ($app in $arrAAD_Applications) {
     $strAppDisplayName = $app.DisplayName 
     $strEntAppObjectID = $app.Id
     $strAppID = $app.AppId
+
+
+    $arrEntAppCertificateRaw = @()
+    $strPreferredSSOMode = ""
+    $arrAppWebRaw = @()
+    $strAppSignInAudience = ""
+    $strSAMLSSOSettings = ""
+    $strAppSignInAudience = ""
+    $strSAMLSSOSettings = ""
+    $strPrefferedTokenSignThumbprint = ""
+    $strIdentifierURI = ""
+    $strSAMLMetadataURL = ""
+    $strSignInURL = ""
+    $strLogoutURL = ""
+    $strReplyURLs
+    $strNotificationEmail = ""
+    ##comment
 }
