@@ -24,5 +24,5 @@ foreach ($app in $arrAAD_Applications) {
     $strLogoutURL = ""
     $strReplyURLs
     $strNotificationEmail = ""
-    ##comment
+ 
 }
