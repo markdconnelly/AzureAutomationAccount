@@ -1,6 +1,5 @@
 $arrAAD_Applications = @()
 $arrAAD_Applications = Get-MgServicePrincipal -All:$true | Where-Object {$_.Tags -eq "WindowsAzureActiveDirectoryIntegratedApp"}
-$arrAAD_Applications = Get-MgServicePrincipal -All:$true | Where-Object {$_.DisplayName -like "PRD-*"}
 $app = $null
 $strAppDisplayName = ""
 $strEntAppObjectID = ""
