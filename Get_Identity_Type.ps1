@@ -16,7 +16,7 @@ $arrAAD_StandardUsers = Get-MgUser -All:$true `
 # Collect array of service accounts
 $arrAAD_ServiceAccounts = @()
 $arrAAD_ServiceAccounts = Get-MgUser -All:$true | Where-Object {$_.UserPrincipalName -like "svc*"}
-#comment
+#
 
 
 
@@ -48,6 +48,6 @@ Disconnect-Graph
 
 $user = Get-MgUser -UserId "2cef8d9d-2e2e-499e-89ad-daf5a5e47941" -Property "customSecurityAttributes"
 $user | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgUser-markconnellyadmin.json" 
-
+$user.CustomSecurityAttributes
 $command = Find-MgGraphCommand -Uri "users*" -Method "GET" -ApiVersion "beta"
 $command.Variants
