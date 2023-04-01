@@ -30,9 +30,9 @@ $arrAAD_Applications | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgServic
 $arrAAD_ApplicationCompare = Get-MgServicePrincipal -All:$true | Format-List DisplayName, ServicePrincipalType, AppOwnerOrganizationId
 $arrAAD_ApplicationCompare | out-file -filepath "C:\temp\Get-MgServicePrincipal-managedidentity.csv"
 
-$arrAAD_StandardUsers = Get-MgUser -UserId "" -Property "CustomSecurityAttributes"
+$arrAAD_StandardUsers = Get-MgUser -UserId "peter@imperionllc.com" -Property "CustomSecurityAttributes"
 $arrAAD_StandardUsers | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgUser-markconnellyadmin.json"
-$test = Get-MgUser -UserId "" -Property * | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgUser-markconnellyadmin.json"
+$test = Get-MgUser -UserId "peter@imperionllc.com" -Property * | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgUser-markconnellyadmin.json"
 
 Select-MgProfile -Name "beta"
 Get-MgProfile
