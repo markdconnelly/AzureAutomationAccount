@@ -27,12 +27,12 @@ $arrAAD_ServiceAccounts = Get-MgUser -All:$true | Where-Object {$_.UserPrincipal
 
 $arrAAD_Applications | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgServicePrincipal-managedidentity.json"
 
-$arrAAD_ApplicationCompare = Get-MgServicePrincipal -All:$true | Format-List DisplayName, ServicePrincipalType, AppOwnerOrganizationId
-$arrAAD_ApplicationCompare | out-file -filepath "C:\temp\Get-MgServicePrincipal-managedidentity.csv"
+$arrAAD_ApplicationCompare = Get-MgServicePrincipal -ServicePrincipalId "96a5c58a-1e06-4d0e-8077-625a90acf5c9"
+$arrAAD_ApplicationCompare | ConvertTo-Json | Out-file -filepath "C:\temp\fortigatesslvpn.json"
 
-$arrAAD_StandardUsers = Get-MgUser -UserId "peter@imperionllc.com" -Property "CustomSecurityAttributes"
-$arrAAD_StandardUsers | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgUser-markconnellyadmin.json"
-$test = Get-MgUser -UserId "peter@imperionllc.com" -Property * | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgUser-markconnellyadmin.json"
+$arrAAD_StandardUsers = Get-MgUser -UserId "peter@imperionllc.com"
+$arrAAD_StandardUsers | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgUser-peterparker.json"
+$test = Get-MgUser -UserId "peter@imperionllc.com" -Property * | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgUser-peterparker.json"
 
 Select-MgProfile -Name "beta"
 Get-MgProfile
@@ -47,7 +47,7 @@ $context.Scopes
 Disconnect-Graph
 
 $user = Get-MgUser -UserId "2cef8d9d-2e2e-499e-89ad-daf5a5e47941" -Property "customSecurityAttributes"
-$user | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgUser-markconnellyadmin.json" 
+$user | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgUser-markconnelly.json" 
 $user.CustomSecurityAttributes
 $command = Find-MgGraphCommand -Uri "users*" -Method "GET" -ApiVersion "beta"
 $command.Variants
