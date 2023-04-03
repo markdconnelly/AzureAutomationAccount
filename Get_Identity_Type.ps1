@@ -16,7 +16,13 @@ $arrAAD_StandardUsers = Get-MgUser -All:$true `
 # Collect array of service accounts
 $arrAAD_ServiceAccounts = @()
 $arrAAD_ServiceAccounts = Get-MgUser -All:$true | Where-Object {$_.UserPrincipalName -like "svc*"}
-#
+
+# Loop through each application service principal and set its custom security attribute to "Application"
+foreach($app in $arrAAD_Applications) {
+    Get-MgServicePrincipalCustomSecurityAttribute -UserId $app.Id -CustomSecurityAttributeSetId "CybersecurityCore_AccountType" | ConvertTo-Json | out-file -filepath "C:\temp\Get-MgServicePrincipalCustomSecurityAttribute-$($app.DisplayName).json"
+    $app.CustomSecurityAttributes = "Application"
+    
+}
 
 
 
