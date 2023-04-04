@@ -41,18 +41,23 @@ $arrApplicationAccountTypeAttribute = @{
 
 # Loop through the application array and set the account type attribute
 $intProgressStatus = 0
+Write-Host "Progress counter reset to $intProgressStatus"
 $intFailures = 0
+Write-Host "Failure counter reset to $intFailures"
+Write-Host "Checking $($arrAAD_Applications.Count) applications for the account type custom security attribute"
 foreach($app in $arrAAD_Applications){
     $hashCybersecityCoreAttributes = @{}
     $hashCybersecityCoreAttributes = $app.CustomSecurityAttributes.AdditionalProperties.CybersecurityCore
     $strAccountType = ""
     $strAccountType = $hashCybersecityCoreAttributes.AccountType
+    Write-Host "Checking $($app.DisplayName) account type"
+    Write-Host "Current account type is $strAccountType"
     if($strAccountType -eq "Application"){
-        Write-Host "Application account type is correct"
+        Write-Host "Application account type for $($app.DisplayName) is correct. Moving on to the next application."
     }
     else{
-        Write-Host "Application account type is incorrect"
-        Write-Host "Updating application account type"
+        Write-Host "Application account type for $($app.DisplayName) is incorrect"
+        Write-Host "Updating application account type to "Application""
         try {
             Update-MgServicePrincipal -ServicePrincipalId $app.Id -BodyParameter $arrApplicationAccountTypeAttribute
         }
