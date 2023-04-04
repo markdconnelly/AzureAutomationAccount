@@ -1,6 +1,7 @@
-$strClientID = Get-AutomationVariable -Name "PowerShellAppID"
-$strTenantID = Get-AutomationVariable -Name "TenantID"
-$strClientSecret = Get-AutomationVariable -Name "PowerShellAppSecret"
+# Connect to Microsoft Graph as a service principal
+$strClientID = Get-Secret -Name PSAppID -AsPlainText
+$strTenantID = Get-Secret -Name PSAppTenantID -AsPlainText
+$strClientSecret = Get-Secret -Name PSAppSecret -AsPlainText
 $strAPI_URI = "https://login.microsoftonline.com/$strTenantID/oauth2/token"
 $arrAPI_Body = @{
     grant_type = "client_credentials"
@@ -11,13 +12,23 @@ $arrAPI_Body = @{
 $objAccessTokenRaw = Invoke-RestMethod -Method Post -Uri $strAPI_URI -Body $arrAPI_Body -ContentType "application/x-www-form-urlencoded"
 $objAccessToken = $objAccessTokenRaw.access_token
 Connect-Graph -Accesstoken $objAccessToken
-Select-MgProfile beta
+
+# Validate that the beta profile is in use
+$strProfileName = Get-MgProfile | Select-Object -ExpandProperty Name
+Write-Host "Current profile: $strProfileName"
+if ($strProfileName -eq "v1.0") {
+    Select-MgProfile beta
+    Write-Host "Profile check has changed the profile to beta"
+}
+else {
+    Write-Host "No action required from the profile check"
+}
 
 # Collect array of application service principals
 $arrAAD_Applications = @()
-$arrAAD_Applications = Get-MgServicePrincipal -All:$true | Where-Object {$_.ServicePrincipalType -eq "Application"}
+$arrAAD_Applications = Get-MgServicePrincipal -All:$true | Where-Object {$_.ServicePrincipalType -eq "Application" -and $_.Tags -eq "WindowsAzureActiveDirectoryIntegratedApp"}
 
-# Set attribute parameters for each account type
+# Set attribute parameters for the "Application" account type
 $arrApplicationAccountTypeAttribute = @{}
 $arrApplicationAccountTypeAttribute = @{
 	CustomSecurityAttributes = @{
@@ -53,7 +64,6 @@ foreach($app in $arrAAD_Applications){
     }
     $intProgressStatus++
 }
-Write-Host 
 
 
 
