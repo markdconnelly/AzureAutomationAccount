@@ -1,8 +1,16 @@
-# Connect to Microsoft Graph using the Azure Automation managed identity and set the profile to beta
-Connect-AzAccount -Identity
-$AccessToken = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com"
-# Connect to the Graph SDK with the acquired access token
-Connect-Graph -AccessToken $AccessToken.Token
+$strClientID = Get-AutomationVariable -Name "PowerShellAppID"
+$strTenantID = Get-AutomationVariable -Name "TenantID"
+$strClientSecret = Get-AutomationVariable -Name "PowerShellAppSecret"
+$strAPI_URI = "https://login.microsoftonline.com/$strTenantID/oauth2/token"
+$arrAPI_Body = @{
+    grant_type = "client_credentials"
+    client_id = $strClientID
+    client_secret = $strClientSecret
+    resource = "https://graph.microsoft.com"
+}
+$objAccessTokenRaw = Invoke-RestMethod -Method Post -Uri $strAPI_URI -Body $arrAPI_Body -ContentType "application/x-www-form-urlencoded"
+$objAccessToken = $objAccessTokenRaw.access_token
+Connect-Graph -Accesstoken $objAccessToken
 Select-MgProfile beta
 
 # Collect array of application service principals
