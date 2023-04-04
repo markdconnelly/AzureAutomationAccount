@@ -1,5 +1,8 @@
 # Connect to Microsoft Graph using the Azure Automation managed identity and set the profile to beta
-Connect-Graph -Identity
+Connect-AzAccount -Identity
+$AccessToken = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com"
+# Connect to the Graph SDK with the acquired access token
+Connect-Graph -AccessToken $AccessToken.Token
 Select-MgProfile beta
 
 # Collect array of application service principals
@@ -39,11 +42,10 @@ foreach($app in $arrAAD_Applications){
             Write-Host "Undable to set attribute for $($app.DisplayName)"
             Write-Host $Error[0].Exception.Message
         }
-        
     }
     $intProgressStatus++
 }
-
+Write-Host 
 
 
 
