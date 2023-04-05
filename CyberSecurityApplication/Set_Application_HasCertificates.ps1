@@ -87,7 +87,7 @@ foreach($app in $arrAAD_Applications){
         $arrLoopAppCertificates = $null
     }
     try {
-        $arrLoopAppCertificates += Get-MgApplication -Select Id,DisplayName,KeyCredentials -ApplicationId $app.AppId -ErrorAction Stop
+        $arrLoopAppCertificates += Get-MgApplication -Select Id,DisplayName,KeyCredentials -Filter "AppId eq $($app.AppId)" $app.AppId -ErrorAction Stop
     }
     catch {
         Write-Host "Unable to get app registration certificates for $($app.DisplayName)" -BackgroundColor Black -ForegroundColor Red
