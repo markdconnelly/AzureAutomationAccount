@@ -53,16 +53,16 @@ $intFailures = 0
 Write-Host "Failure counter reset to $intFailures" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Checking $($arrAAD_StandardUsers.Count) users for the account type custom security attribute" -BackgroundColor Black -ForegroundColor Green
 foreach($user in $arrAAD_StandardUsers){
-    $arrLoopUserAttr = @{}
+    $arrLoopUserAttributes = @{}
     try {
-        $arrLoopUserAttr = Get-MgUser -Select userPrincipalName,customSecurityAttributes -UserId $user.Id -ErrorAction Stop
+        $arrLoopUserAttributes = Get-MgUser -Select userPrincipalName,customSecurityAttributes -UserId $user.Id -ErrorAction Stop
     }
     catch {
         Write-Host "Unable to get the current attributes for $($user.UserPrincipalName)" -BackgroundColor Black -ForegroundColor Red
-        $arrLoopUserAttr = $null
+        $arrLoopUserAttributes = $null
     }
     $hashCybersecityCoreAttributes = @{}
-    $hashCybersecityCoreAttributes = $arrLoopUserAttr.CustomSecurityAttributes.AdditionalProperties.CyberSecurityData #$user.CustomSecurityAttributes.AdditionalProperties.CybersecurityCore
+    $hashCybersecityCoreAttributes = $arrLoopUserAttributes.CustomSecurityAttributes.AdditionalProperties.CyberSecurityData #$user.CustomSecurityAttributes.AdditionalProperties.CybersecurityCore
     $strAccountType = ""
     $strAccountType = $hashCybersecityCoreAttributes.AccountType
     if($strAccountType -eq $null){
@@ -88,6 +88,7 @@ foreach($user in $arrAAD_StandardUsers){
     $intProgressStatus++
 }
 
+# Return the profile to standard before exiting
 if ($strProfileName -eq "beta") {
     Select-MgProfile v1.0
     Write-Host "Script has completed. Profile check has changed the profile back to v1.0." -BackgroundColor Black -ForegroundColor Green
