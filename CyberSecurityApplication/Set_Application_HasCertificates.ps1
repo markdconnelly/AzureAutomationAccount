@@ -1,4 +1,4 @@
-## This script will set the "AccountType" Custom Security Attribute for all applications in Azure Active Directory
+## This script will set the "HasCertificates" Custom Security Attribute for all applications in Azure Active Directory
 
 # Connect to Microsoft Graph as a service principal
 Write-Host "Connecting to Microsoft Graph as a service principal" -BackgroundColor Black -ForegroundColor Green
@@ -97,3 +97,17 @@ else {
 
 
 
+$arrAAD_ApplicationType = @()
+$arrAAD_ApplicationType = Get-MgServicePrincipal -All:$true | Where-Object {$_.ServicePrincipalType -eq "Application" -and $_.Tags -eq "WindowsAzureActiveDirectoryIntegratedApp"}
+
+$arrAAD_Application = @()
+$arrAAD_Application = Get-MgServicePrincipal -All:$true | Where-Object {$_.Tags -eq "WindowsAzureActiveDirectoryIntegratedApp"}
+
+$arrAAD_ApplicationCerts = @() 
+$arrAAD_ApplicationCerts = Get-MgServicePrincipal -ServicePrincipalId ""
+
+$arrAAD_ApplicationNoCerts = @() 
+$arrAAD_ApplicationNoCerts = Get-MgServicePrincipal -ServicePrincipalId ""
+
+$arrAAD_ApplicationType.Count
+$arrAAD_Application.Count
