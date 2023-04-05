@@ -124,7 +124,7 @@ foreach($app in $arrAAD_Applications){
             }
         }
         else{
-
+            Write-Host "HasSSO attribute for $($app.DisplayName) is correct. Proceeding to the next application." -BackgroundColor Black -ForegroundColor Green
         }
     }
     $intProgressStatus++
