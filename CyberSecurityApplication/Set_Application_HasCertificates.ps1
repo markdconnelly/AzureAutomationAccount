@@ -79,16 +79,26 @@ foreach($app in $arrAAD_Applications){
     Write-Host "Current HasSSO value is $strHasSSO" -BackgroundColor Black -ForegroundColor Green
     Write-Host "Checking $($app.DisplayName) certificates" -BackgroundColor Black -ForegroundColor Green
     $arrLoopAppCertificates = @()
+    $arrLoopServicePrincipalObject = @()
+    $arrLoopAppRegObject = @()
     try {
-        $arrLoopAppCertificates = Get-MgServicePrincipal -Select Id, AppId,DisplayName,KeyCredentials -ServicePrincipalId $app.Id -ErrorAction Stop
+        $arrLoopServicePrincipalObject = Get-MgServicePrincipal -ServicePrincipalId $app.Id -ErrorAction Stop
     }
     catch {
         Write-Host "Unable to get service principal certificates for $($app.DisplayName)" -BackgroundColor Black -ForegroundColor Red
-        $arrLoopAppCertificates = $null
+        $arrLoopServicePrincipalObject = $null
     }
     try {
-        $arrLoopAppCertificates += Get-MgApplication -Select Id,DisplayName,KeyCredentials -Filter "AppId eq $($app.AppId)" $app.AppId -ErrorAction Stop
+        $arrLoopAppRegObject += Get-MgApplication -Filter "AppId eq $($app.AppId)" -ErrorAction Stop
+        $testArray = Get-MgApplication -Filter "AppId eq $($app.AppId)" -ErrorAction Stop
+        $intProgressStatus 
     }
+    Catch {
+        Write-Host "Unable to get app registration certificates for $($app.DisplayName)" -BackgroundColor Black -ForegroundColor Red
+        $arrLoopAppRegObject = $null
+    }
+    $arrLoopAppCertificates = $arrLoopServicePrincipalObject.KeyCredentials
+    $arrLoopAppCertificates += $arrLoopAppRegObject.KeyCredentials
     catch {
         Write-Host "Unable to get app registration certificates for $($app.DisplayName)" -BackgroundColor Black -ForegroundColor Red
     }
