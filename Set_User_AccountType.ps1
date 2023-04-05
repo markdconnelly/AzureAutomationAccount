@@ -1,3 +1,5 @@
+## This script will set the "AccountType" Custom Security Attribute for all standard users in Azure Active Directory
+
 # Connect to Microsoft Graph as a service principal
 Write-Host "Connecting to Microsoft Graph as a service principal" -BackgroundColor Black -ForegroundColor Green
 $strClientID = Get-Secret -Name PSAppID -AsPlainText
