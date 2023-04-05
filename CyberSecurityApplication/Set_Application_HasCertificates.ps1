@@ -32,26 +32,36 @@ Write-Host "Collecting array of enterprise applications" -BackgroundColor Black 
 $arrAAD_Applications = @()
 $arrAAD_Applications = Get-MgServicePrincipal -All:$true | Where-Object {$_.ServicePrincipalType -eq "Application" -and $_.Tags -eq "WindowsAzureActiveDirectoryIntegratedApp"}
 
-# Set attribute parameters for the "Application" account type
-Write-Host "Setting attribute parameters for the "Application" account type" -BackgroundColor Black -ForegroundColor Green
-$arrApplicationAccountTypeAttribute = @{}
-$arrApplicationAccountTypeAttribute = @{
+# Set attribute parameters for the "HasSSO" application attribute
+Write-Host "Setting attribute parameters for the "HasSSO" custom security attribute" -BackgroundColor Black -ForegroundColor Green
+$hashHasSSO_True = @{}
+$hashHasSSO_True = @{
 	CustomSecurityAttributes = @{
-		CyberSecurityData = @{ #CybersecurityCore
+		CybersecurityApplications = @{ 
 			"@odata.type" = "#Microsoft.DirectoryServices.CustomSecurityAttributeValue"
-			AccountType = "Enterprise Application" #"Application"
+			HasSSO = "True"
+		}
+	}
+}
+$hashHasSSO_False = @{}
+$hashHasSSO_False = @{
+	CustomSecurityAttributes = @{
+		CybersecurityApplications = @{ 
+			"@odata.type" = "#Microsoft.DirectoryServices.CustomSecurityAttributeValue"
+			HasSSO = "False"
 		}
 	}
 }
 
-# Loop through the application array and set the account type attribute
+# Loop through the application array, evaluate the HasSSO attribute, the application certificate status, and set the HasSSO attribute accordingly
 $intProgressStatus = 0
 Write-Host "Progress counter reset to $intProgressStatus" -BackgroundColor Black -ForegroundColor Green
 $intFailures = 0
 Write-Host "Failure counter reset to $intFailures" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Checking $($arrAAD_Applications.Count) applications for the account type custom security attribute" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Checking $($arrAAD_Applications.Count) applications for the HasSSO custom security attribute" -BackgroundColor Black -ForegroundColor Green
 foreach($app in $arrAAD_Applications){
     $arrLoopAppAttributes = @()
+    # Get the current HasSSO attribute value
     try {
         $arrLoopAppAttributes = Get-MgServicePrincipal -Select Id,DisplayName,CustomSecurityAttributes -ServicePrincipalId $app.Id -ErrorAction Stop
     }
@@ -59,28 +69,62 @@ foreach($app in $arrAAD_Applications){
         Write-Host "Unable to get the current attributes for $($app.DisplayName)" -BackgroundColor Black -ForegroundColor Red
         $arrLoopAppAttributes = $null
     }
-    $hashCybersecityCoreAttributes = @{}
-    $hashCybersecityCoreAttributes = $arrLoopAppAttributes.CustomSecurityAttributes.AdditionalProperties.CyberSecurityData           #CustomSecurityAttributes.AdditionalProperties.CybersecurityCore
-    $strAccountType = ""
-    $strAccountType = $hashCybersecityCoreAttributes.AccountType
-    if($strAccountType -eq $null){
-        $strAccountType = "Blank"
+    $hashCybersecityAppAttributes = @{}
+    $hashCybersecityAppAttributes = $arrLoopAppAttributes.CustomSecurityAttributes.AdditionalProperties.CybersecurityApplications  
+    $strHasSSO = ""
+    $strHasSSO = $hashCybersecityCoreAttributes.HasSSO
+    if($strHasSSO -eq $null){
+        $strHasSSO = "Blank"
     }
-    Write-Host "Checking $($app.DisplayName) account type" -BackgroundColor Black -ForegroundColor Green
-    Write-Host "Current account type is $strAccountType" -BackgroundColor Black -ForegroundColor Green
-    if($strAccountType -eq "Enterprise Application"){ #"Application"
-        Write-Host "Application account type for $($app.DisplayName) is correct. Moving on to the next application." -BackgroundColor Black -ForegroundColor Green
+    Write-Host "Current HasSSO value is $strHasSSO" -BackgroundColor Black -ForegroundColor Green
+    Write-Host "Checking $($app.DisplayName) certificates" -BackgroundColor Black -ForegroundColor Green
+    $arrLoopAppCertificates = @()
+    try {
+        $arrLoopAppCertificates = Get-MgServicePrincipal -Select Id, AppId,DisplayName,KeyCredentials -ServicePrincipalId $app.Id -ErrorAction Stop
+    }
+    catch {
+        Write-Host "Unable to get service principal certificates for $($app.DisplayName)" -BackgroundColor Black -ForegroundColor Red
+        $arrLoopAppCertificates = $null
+    }
+    try {
+        $arrLoopAppCertificates += Get-MgApplication -Select Id,DisplayName,KeyCredentials -ApplicationId $app.AppId -ErrorAction Stop
+    }
+    catch {
+        Write-Host "Unable to get app registration certificates for $($app.DisplayName)" -BackgroundColor Black -ForegroundColor Red
+    }
+    Write-Host "Found $($arrLoopAppCertificates.Count) certificates for $($app.DisplayName)" -BackgroundColor Black -ForegroundColor Green
+
+    # Check if there are certificates present, and if the attribute mismatches, correct it.
+    if($($arrLoopAppCertificates.Count) -eq "0"){ 
+        Write-Host "No certificates found for $($app.DisplayName). Setting attribute to false." -BackgroundColor Black -ForegroundColor Red
+        if($strHasSSO -ne "False"){
+            try {
+                Update-MgServicePrincipal -ServicePrincipalId $app.Id -BodyParameter $hashHasSSO_False -ErrorAction Stop
+            }
+            catch {
+                $intFailures++
+                Write-Host "Undable to set attribute for $($app.DisplayName)" -BackgroundColor Black -ForegroundColor Red
+                Write-Host $Error[0].Exception.Message -BackgroundColor Black -ForegroundColor Red
+            }
+        }
+        else{
+            Write-Host "HasSSO attribute for $($app.DisplayName) is correct. Proceeding to the next application." -BackgroundColor Black -ForegroundColor Green
+        }
     }
     else{
-        Write-Host "Application account type for $($app.DisplayName) is incorrect" -BackgroundColor Black -ForegroundColor Red
-        Write-Host "Updating application account type to "Application"" -BackgroundColor Black -ForegroundColor Green
-        try {
-            Update-MgServicePrincipal -ServicePrincipalId $app.Id -BodyParameter $arrApplicationAccountTypeAttribute -ErrorAction Stop
+        Write-Host "Application certificates found for $($app.DisplayName). Setting attribute to true." -BackgroundColor Black -ForegroundColor Green
+        if($strHasSSO -ne "True"){
+            try {
+                Update-MgServicePrincipal -ServicePrincipalId $app.Id -BodyParameter $hashHasSSO_True -ErrorAction Stop
+            }
+            catch {
+                $intFailures++
+                Write-Host "Undable to set attribute for $($app.DisplayName)" -BackgroundColor Black -ForegroundColor Red
+                Write-Host $Error[0].Exception.Message -BackgroundColor Black -ForegroundColor Red
+            }
         }
-        catch {
-            $intFailures++
-            Write-Host "Undable to set attribute for $($app.DisplayName)" -BackgroundColor Black -ForegroundColor Red
-            Write-Host $Error[0].Exception.Message -BackgroundColor Black -ForegroundColor Red
+        else{
+
         }
     }
     $intProgressStatus++
@@ -96,18 +140,3 @@ else {
 }
 
 
-
-$arrAAD_ApplicationType = @()
-$arrAAD_ApplicationType = Get-MgServicePrincipal -All:$true | Where-Object {$_.ServicePrincipalType -eq "Application" -and $_.Tags -eq "WindowsAzureActiveDirectoryIntegratedApp"}
-
-$arrAAD_Application = @()
-$arrAAD_Application = Get-MgServicePrincipal -All:$true | Where-Object {$_.Tags -eq "WindowsAzureActiveDirectoryIntegratedApp"}
-
-$arrAAD_ApplicationCerts = @() 
-$arrAAD_ApplicationCerts = Get-MgServicePrincipal -ServicePrincipalId ""
-
-$arrAAD_ApplicationNoCerts = @() 
-$arrAAD_ApplicationNoCerts = Get-MgServicePrincipal -ServicePrincipalId ""
-
-$arrAAD_ApplicationType.Count
-$arrAAD_Application.Count
