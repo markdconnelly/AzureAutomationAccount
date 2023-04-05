@@ -66,7 +66,7 @@ foreach($app in $arrAAD_Applications){
     }
     Write-Host "Checking $($app.DisplayName) account type" -BackgroundColor Black -ForegroundColor Green
     Write-Host "Current account type is $strAccountType" -BackgroundColor Black -ForegroundColor Green
-    if($strAccountType -eq "Application"){
+    if($strAccountType -eq "Enterprise Application"){ #"Application"
         Write-Host "Application account type for $($app.DisplayName) is correct. Moving on to the next application." -BackgroundColor Black -ForegroundColor Green
     }
     else{
