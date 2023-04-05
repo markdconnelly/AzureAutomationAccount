@@ -2,7 +2,7 @@
 Connect-Graph -Identity
 Select-MgProfile beta
 
-# Collect array of application service principals
+# Collect array of application service principals 
 $arrAAD_Applications = @()
 $arrAAD_Applications = Get-MgServicePrincipal -All:$true | Where-Object {$_.ServicePrincipalType -eq "Application"}
 # Collect array of managed identity service principals

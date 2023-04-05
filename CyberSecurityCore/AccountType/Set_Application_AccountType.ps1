@@ -86,6 +86,7 @@ foreach($app in $arrAAD_Applications){
     $intProgressStatus++
 }
 # Return the profile to standard before exiting
+$strProfileName = Get-MgProfile | Select-Object -ExpandProperty Name
 if ($strProfileName -eq "beta") {
     Select-MgProfile v1.0
     Write-Host "Script has completed. Profile check has changed the profile back to v1.0." -BackgroundColor Black -ForegroundColor Green
