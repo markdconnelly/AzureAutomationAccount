@@ -10,6 +10,9 @@
     N/A
 .EXAMPLE
     Get-UserCustomSecurityAttributes -UserPrincipalName "user@contoso.org" -CustomSecurityAttributeSet "AttributeSet1" -CustomSecurityAttribute "Attribute1"
+        If only a UPN is passed, the function will return all custom security attributes for the user.
+        If a UPN and a custom security attribute set are passed, the function will return all custom security attributes for the user in the specified set.
+        If a UPN, a custom security attribute set, and a custom security attribute are passed, the function will return the value of the specified custom security attribute for the user.
 #>
 
 Function Get-UserCustomSecurityAttributes {
@@ -18,19 +21,39 @@ Function Get-UserCustomSecurityAttributes {
         [Parameter(Mandatory=$true,Position=0)]
         [string]$UserPrincipalName,
         [Parameter(Mandatory=$false,Position=1)]
-        [string]$CustomSecurityAttributeSet,
+        [string]$CustomSecurityAttributeSet = $null,
         [Parameter(Mandatory=$false,Position=2)]
-        [string]$CustomSecurityAttribute
+        [string]$CustomSecurityAttribute = $null
     )
-    Begin {
-        # This is the beginning of the function
+    # Check to see if a connection to the Microsoft Graph API has been established
+    $objGetGraphConnected = $null
+    $objGetGraphConnected = Get-MgContext
+    if($objGetGraphConnected -eq $null){
+        return "No connection to the Microsoft Graph API has been established. Please connect to the Microsoft Graph API before running this function."
     }
-    Process {
-        # This is the main body of the function
-        $arrUser = Get-MgUser -UserPrincipalName $UserPrincipalName -Select Id,DisplayName,CustomSecurityAttributes
-        $arrUser.CustomSecurityAttributes.AdditionalProperties.$CustomSecurityAttributeSet.$CustomSecurityAttribute
+    else{
+        Write-Verbose "Connection to the Microsoft Graph API exists." 
     }
-    End {
-        # This is the end of the function
+
+    # Validate that the beta profile is in use
+    $strProfileName = Get-MgProfile | Select-Object -ExpandProperty Name
+    Write-Verbose "Current profile: $strProfileName"
+    if ($strProfileName -eq "v1.0") {
+        Select-MgProfile beta
+        Write-Verbose "Profile check has changed the profile to beta"
     }
+    else { 
+        Write-Verbose "No action required from the profile check"
+    }
+
+    # This is the main body of the function
+    $arrUser = Get-MgUser -UserId $UserPrincipalName -Select Id,DisplayName,CustomSecurityAttributes
+    $arrUser.CustomSecurityAttributes.AdditionalProperties.$CustomSecurityAttributeSet.$CustomSecurityAttribute
+    
+    
+    $psobjUserCustomSecurityAttributes = @{}
+
+
+    return $psobjUserCustomSecurityAttributes
 }
+    
