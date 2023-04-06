@@ -53,7 +53,7 @@ Function Get-DevOpsUserCustomSecurityAttributes {
     $psobjUserCustomSecurityAttributes = @()
     $arrCustomAttributeSetNames = @()
     if($CustomSecurityAttributeSet -eq "Blank"){
-        $arrCustomAttributeSetNames = $hashCustomAttributesRaw.Key | Out-String -Stream
+        $arrCustomAttributeSetNames = $hashCustomAttributesRaw.Key | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
         $strPause = ""
     }
     else{
