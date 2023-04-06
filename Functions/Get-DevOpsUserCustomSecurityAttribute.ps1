@@ -9,7 +9,7 @@
 .LINK
     N/A
 .EXAMPLE
-    Get-UserCustomSecurityAttributes -UserPrincipalName "user@contoso.org" -CustomSecurityAttributeSet "AttributeSet1" -CustomSecurityAttribute "Attribute1"
+    Get-DevOpsUserCustomSecurityAttributes -UserPrincipalName "user@contoso.org" -CustomSecurityAttributeSet "AttributeSet1" -CustomSecurityAttribute "Attribute1"
         If only a UPN is passed, the function will return all custom security attributes for the user.
         If a UPN and a custom security attribute set are passed, the function will return all custom security attributes for the user in the specified set.
         If a UPN, a custom security attribute set, and a custom security attribute are passed, the function will return the value of the specified custom security attribute for the user.
@@ -56,19 +56,16 @@ Function Get-DevOpsUserCustomSecurityAttributes {
     foreach($arrCustomAttributeSet in $arrCustomAttributeSetNames){
         $strAttributeSetName = ""
         $strAttributeSetName = $arrCustomAttributeSet | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
-        Write-Host "strAttributeSetName has a type of $($strAttributeSetName.GetType()) and a value of $strAttributeSetName"
         $hashCustomAttributes = @{}
-        $hashCustomAttributes = $mark.CustomSecurityAttributes.AdditionalProperties.$strAttributeSetName
+        $hashCustomAttributes = $arrUser.CustomSecurityAttributes.AdditionalProperties.$strAttributeSetName
         $hashCustomAttributes.Remove("@odata.type")
         $arrCustomAttributes = @()
         $arrCustomAttributes = $hashCustomAttributes.Keys | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
         foreach($Attribute in $arrCustomAttributes){
             $strAttributeName = ""
             $strAttributeName = $Attribute | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
-            Write-Host "strAttributeName has a type of $($strAttributeName.GetType()) and a value of $strAttributeName"
             $strAttributeValue = ""
             $strAttributeValue = $hashCustomAttributes[$Attribute] | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
-            Write-Host "strAttributeValue has a type of $($strAttributeValue.GetType()) and a value of $strAttributeValue"
             $psobjUserCustomSecurityAttributes += [PSCustomObject]@{
                 AttributeSet = $strAttributeSetName
                 AttributeName = $strAttributeName

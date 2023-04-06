@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-    This function will return the value of a custom security attribute for a user.
+    This function will return an array of users that match the selected custom security attributes.
 .DESCRIPTION
-    Queries the established custom security attribute for a user and checks the user specified in the parameter for that attribtue
+    Queries all users filtered by the custom security attributes specified in the parameters.
 .NOTES
     This is a custom function written by Mark Connelly, so it may not work as intended. Use at your own risk.
     This function assumes a connection to the Microsoft Graph API is established. If it is not, the function will fail.
