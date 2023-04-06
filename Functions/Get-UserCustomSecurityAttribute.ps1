@@ -19,11 +19,11 @@ Function Get-UserCustomSecurityAttributes {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory=$true,Position=0)]
-        [string]$UserPrincipalName,
-        [Parameter(Mandatory=$false,Position=1)]
-        [string]$CustomSecurityAttributeSet = $null,
-        [Parameter(Mandatory=$false,Position=2)]
-        [string]$CustomSecurityAttribute = $null
+        [string]$UserPrincipalName#,
+        #[Parameter(Mandatory=$false,Position=1)]
+        #[string]$CustomSecurityAttributeSet = $null,
+        #[Parameter(Mandatory=$false,Position=2)]
+        #[string]$CustomSecurityAttribute = $null
     )
     # Check to see if a connection to the Microsoft Graph API has been established
     $objGetGraphConnected = $null
@@ -46,14 +46,48 @@ Function Get-UserCustomSecurityAttributes {
         Write-Verbose "No action required from the profile check"
     }
 
-    # This is the main body of the function
+    # Itterate through the custom security attributes to build a psobject of the attributes
     $arrUser = Get-MgUser -UserId $UserPrincipalName -Select Id,DisplayName,CustomSecurityAttributes
-    $arrUser.CustomSecurityAttributes.AdditionalProperties.$CustomSecurityAttributeSet.$CustomSecurityAttribute
-    
-    
+    $arrUser.CustomSecurityAttributes.AdditionalProperties
     $psobjUserCustomSecurityAttributes = @{}
-
-
-    return $psobjUserCustomSecurityAttributes
-}
+    $arrCustomAttributeSetNames = @()
+    $arrCustomAttributeSetNames = $hashCustomAttributesRaw.Keys | Out-String -Stream
+    $psobjUserCustomSecurityAttributes = @()
+    foreach($arrCustomAttributeSet in $arrCustomAttributeSetNames){
+        $strAttributeSetName = ""
+        $strAttributeSetName = $arrCustomAttributeSet
+        $hashCustomAttributes = @{}
+        $hashCustomAttributes = $mark.CustomSecurityAttributes.AdditionalProperties.$strAttributeSetName
+        $hashCustomAttributes.Remove("@odata.type")
+        $arrCustomAttributes = @()
+        $arrCustomAttributes = $hashCustomAttributes.Keys | Out-String -Stream
+        foreach($Attribute in $arrCustomAttributes){
+            $strAttributeName = ""
+            $strAttributeName = $Attribute
+            $strAttributeValue = ""
+            $strAttributeValue = $hashCustomAttributes[$Attribute] | Out-String -Stream
     
+            $psobjUserCustomSecurityAttributes += [PSCustomObject]@{
+                AttributeSet = $strAttributeSetName
+                AttributeName = $strAttributeName
+                AttributeValue = $strAttributeValue
+            }
+            $intProgressStatus ++
+        }
+        $intProgressStatus ++
+    }
+    # Return the profile to standard before exiting
+    $strProfileName = Get-MgProfile | Select-Object -ExpandProperty Name
+    if ($strProfileName -eq "beta") {
+        Select-MgProfile v1.0
+        Write-Verbose "Script has completed. Profile check has changed the profile back to v1.0."
+    }
+    else {
+        Write-Verbose "No action required from the profile check. v1.0 is selected."
+    }
+        return $psobjUserCustomSecurityAttributes
+}
+
+
+
+Get-MgUserCustomSecurityAttributes -UserPrincipalName "mark@imperionllc.com"
