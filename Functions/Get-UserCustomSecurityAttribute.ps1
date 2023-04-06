@@ -19,11 +19,11 @@ Function Get-DevOpsUserCustomSecurityAttributes {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory=$true,Position=0)]
-        [string]$UserId,
+        [string]$UserId<#,
         [Parameter(Mandatory=$false,Position=1)]
         [string]$CustomSecurityAttributeSet = $null,
         [Parameter(Mandatory=$false,Position=2)]
-        [string]$CustomSecurityAttribute = $null
+        [string]$CustomSecurityAttribute = $null#>
     )
     # Check to see if a connection to the Microsoft Graph API has been established
     $objGetGraphConnected = $null
@@ -87,9 +87,3 @@ Function Get-DevOpsUserCustomSecurityAttributes {
     }
         return $psobjUserCustomSecurityAttributes
 }
-
-
-
-Get-UserCustomSecurityAttributes -UserId "mark@imperionllc.com"
-
-Get-DevOpsUserCustomSecurityAttributes -UserId "mark@imperionllc.com"
