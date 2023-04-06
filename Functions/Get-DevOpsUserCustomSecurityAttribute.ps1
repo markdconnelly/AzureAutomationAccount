@@ -67,9 +67,7 @@ Function Get-DevOpsUserCustomSecurityAttributes {
         $hashCustomAttributes.Remove("@odata.type")
         $arrCustomAttributes = @()
         if($CustomSecurityAttribute -eq "Blank"){
-            $arrCustomAttributes = $hashCustomAttributes.Key | ConvertTo-Json
-            $arrCustomAttributes = $arrCustomAttributes | ConvertFrom-Json
-            $arrCustomAttributes = $arrCustomAttributes | Out-String -Stream
+            $arrCustomAttributes = $hashCustomAttributes.Key | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
             $strPause = ""
         }
         else{
