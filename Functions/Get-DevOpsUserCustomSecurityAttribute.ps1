@@ -52,7 +52,12 @@ Function Get-DevOpsUserCustomSecurityAttributes {
     $hashCustomAttributesRaw = $arrUser.CustomSecurityAttributes.AdditionalProperties
     $psobjUserCustomSecurityAttributes = @()
     $arrCustomAttributeSetNames = @()
-    $arrCustomAttributeSetNames = $hashCustomAttributesRaw.Keys | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
+    if($CustomSecurityAttributeSet -eq $null){
+        $arrCustomAttributeSetNames = $hashCustomAttributesRaw.Key | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
+    }
+    else{
+        $arrCustomAttributeSetNames = $CustomSecurityAttributeSet
+    }
     foreach($arrCustomAttributeSet in $arrCustomAttributeSetNames){
         $strAttributeSetName = ""
         $strAttributeSetName = $arrCustomAttributeSet | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
@@ -60,18 +65,27 @@ Function Get-DevOpsUserCustomSecurityAttributes {
         $hashCustomAttributes = $arrUser.CustomSecurityAttributes.AdditionalProperties.$strAttributeSetName
         $hashCustomAttributes.Remove("@odata.type")
         $arrCustomAttributes = @()
-        $arrCustomAttributes = $hashCustomAttributes.Keys | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
+        if($CustomSecurityAttribute -eq $null){
+            $arrCustomAttributes = $hashCustomAttributes.Key | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
+        }
+        else{
+            $arrCustomAttributes = $CustomSecurityAttribute
+        }
         foreach($Attribute in $arrCustomAttributes){
             $strAttributeName = ""
             $strAttributeName = $Attribute | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
             $strAttributeValue = ""
             $strAttributeValue = $hashCustomAttributes[$Attribute] | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
+
+            $pause
+
             $psobjUserCustomSecurityAttributes += [PSCustomObject]@{
                 AttributeSet = $strAttributeSetName
                 AttributeName = $strAttributeName
                 AttributeValue = $strAttributeValue
             }
         }
+        $pause
     }
     # Return the profile to standard before exiting
     $strProfileName = Get-MgProfile | Select-Object -ExpandProperty Name
@@ -82,5 +96,12 @@ Function Get-DevOpsUserCustomSecurityAttributes {
     else {
         Write-Verbose "No action required from the profile check. v1.0 is selected."
     }
-        return $psobjUserCustomSecurityAttributes
+    Write-Host "Custom Security Attributes for $UserId"
+    return $psobjUserCustomSecurityAttributes
 }
+
+#Get-DevOpsUserCustomSecurityAttributes -UserId "wade@imperionllc.com" 
+
+#Get-DevOpsUserCustomSecurityAttributes -UserId "bruce@imperionllc.com" -CustomSecurityAttributeSet "CyberSecurityUser"
+
+Get-DevOpsUserCustomSecurityAttributes -UserId "mark@imperionllc.com" -CustomSecurityAttributeSet "CyberSecurityData" #-CustomSecurityAttribute "Priority"
