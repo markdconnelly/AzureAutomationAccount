@@ -84,5 +84,3 @@ Function Get-DevOpsUserCustomSecurityAttributes {
     }
         return $psobjUserCustomSecurityAttributes
 }
-
-Get-DevOpsUserCustomSecurityAttributes -UserId "mark@imperionllc.com"
