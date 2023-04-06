@@ -9,21 +9,18 @@
 .LINK
     N/A
 .EXAMPLE
-    Get-UserCustomSecurityAttributes -UserPrincipalName "user@contoso.org" -CustomSecurityAttributeSet "AttributeSet1" -CustomSecurityAttribute "Attribute1"
-        If only a UPN is passed, the function will return all custom security attributes for the user.
-        If a UPN and a custom security attribute set are passed, the function will return all custom security attributes for the user in the specified set.
-        If a UPN, a custom security attribute set, and a custom security attribute are passed, the function will return the value of the specified custom security attribute for the user.
+    Get-DevOpsUserByCustomSecurityAttributes -CustomSecurityAttributeSet "AttributeSet1" -CustomSecurityAttributeName "Attribute1" -CustomSecurityAttributeValue "AttributeValue"
 #>
 
 Function Get-DevOpsUserByCustomSecurityAttributes {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory=$true,Position=0)]
-        [string]$UserId,
-        [Parameter(Mandatory=$false,Position=1)]
-        [string]$CustomSecurityAttributeSet = $null,
-        [Parameter(Mandatory=$false,Position=2)]
-        [string]$CustomSecurityAttribute = $null
+        [string]$CustomSecurityAttributeSet,
+        [Parameter(Mandatory=$true,Position=1)]
+        [string]$CustomSecurityAttributeName,
+        [Parameter(Mandatory=$true,Position=2)]
+        [string]$CustomSecurityAttributeValue
     )
     # Check to see if a connection to the Microsoft Graph API has been established
     $objGetGraphConnected = $null
@@ -47,35 +44,12 @@ Function Get-DevOpsUserByCustomSecurityAttributes {
         Write-Verbose "No action required from the profile check"
     }
 
-    # Itterate through the custom security attributes to build a psobject of the attributes
-    $arrUser = Get-MgUser -UserId $UserId -Select Id,DisplayName,CustomSecurityAttributes
-    $hashCustomAttributesRaw = $arrUser.CustomSecurityAttributes.AdditionalProperties
-    $psobjUserCustomSecurityAttributes = @()
-    $arrCustomAttributeSetNames = @()
-    $arrCustomAttributeSetNames = $hashCustomAttributesRaw.Keys | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
-    foreach($arrCustomAttributeSet in $arrCustomAttributeSetNames){
-        $strAttributeSetName = ""
-        $strAttributeSetName = $arrCustomAttributeSet | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
-        Write-Host "strAttributeSetName has a type of $($strAttributeSetName.GetType()) and a value of $strAttributeSetName"
-        $hashCustomAttributes = @{}
-        $hashCustomAttributes = $mark.CustomSecurityAttributes.AdditionalProperties.$strAttributeSetName
-        $hashCustomAttributes.Remove("@odata.type")
-        $arrCustomAttributes = @()
-        $arrCustomAttributes = $hashCustomAttributes.Keys | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
-        foreach($Attribute in $arrCustomAttributes){
-            $strAttributeName = ""
-            $strAttributeName = $Attribute | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
-            Write-Host "strAttributeName has a type of $($strAttributeName.GetType()) and a value of $strAttributeName"
-            $strAttributeValue = ""
-            $strAttributeValue = $hashCustomAttributes[$Attribute] | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
-            Write-Host "strAttributeValue has a type of $($strAttributeValue.GetType()) and a value of $strAttributeValue"
-            $psobjUserCustomSecurityAttributes += [PSCustomObject]@{
-                AttributeSet = $strAttributeSetName
-                AttributeName = $strAttributeName
-                AttributeValue = $strAttributeValue
-            }
-        }
-    }
+
+    # Get all users and filter by the custom security attributes
+    $arrUsersByCustomSecurityAttributes = @()
+    $arrUsersByCustomSecurityAttributes = Get-MgUser -All:$true -Select Id,DisplayName,CustomSecurityAttributes `
+    | Where-Object {$_.CustomSecurityAttributes.AdditionalProperties.$CustomSecurityAttributeSet.$CustomSecurityAttributeName -eq $CustomSecurityAttributeValue}
+
     # Return the profile to standard before exiting
     $strProfileName = Get-MgProfile | Select-Object -ExpandProperty Name
     if ($strProfileName -eq "beta") {
@@ -85,7 +59,7 @@ Function Get-DevOpsUserByCustomSecurityAttributes {
     else {
         Write-Verbose "No action required from the profile check. v1.0 is selected."
     }
-        return $psobjUserCustomSecurityAttributes
+        return $arrUsersByCustomSecurityAttributes
 }
 
-Get-DevOpsUserCustomSecurityAttributes -UserId "mark@imperionllc.com"
+Get-DevOpsUserByCustomSecurityAttributes -CustomSecurityAttributeSet "CyberSecurityData" -CustomSecurityAttributeName "AccountType" -CustomSecurityAttributeValue "User"
