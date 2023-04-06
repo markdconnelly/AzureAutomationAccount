@@ -15,7 +15,7 @@
         If a UPN, a custom security attribute set, and a custom security attribute are passed, the function will return the value of the specified custom security attribute for the user.
 #>
 
-Function Get-DevOpsUserCustomSecurityAttributes {
+Function Get-DevOpsUserByCustomSecurityAttributes {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory=$true,Position=0)]
