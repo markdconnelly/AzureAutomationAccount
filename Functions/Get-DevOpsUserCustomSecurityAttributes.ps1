@@ -19,11 +19,7 @@ Function Get-DevOpsUserCustomSecurityAttributes {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory=$true,Position=0)]
-        [string]$UserId,
-        [Parameter(Mandatory=$false,Position=1)]
-        [string]$CustomSecurityAttributeSet = "Blank",
-        [Parameter(Mandatory=$false,Position=2)]
-        [string]$CustomSecurityAttribute = "Blank"
+        [string]$UserId
     )
 
     ##
@@ -63,9 +59,9 @@ Function Get-DevOpsUserCustomSecurityAttributes {
     $psobjUserCustomSecurityAttributes = @()
     foreach($set in $hashCustomAttributes.Keys){
         ##
-        $strAttributeSetNames = $null
-        $strAttributeSetNames = $arrCustomAttributeSet[$set] 
-        foreach($attribute in $arrCustomAttributes){
+        $strAttributeSetName = $null
+        $strAttributeSetName = $arrCustomAttributeSet[$set] 
+        foreach($attribute in $strAttributeSetName){
             ##
             $strAttributeValue = $null
             $strAttributeValue = $hashCustomAttributes[$attribute] 
