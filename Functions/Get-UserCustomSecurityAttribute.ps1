@@ -15,19 +15,20 @@
         If a UPN, a custom security attribute set, and a custom security attribute are passed, the function will return the value of the specified custom security attribute for the user.
 #>
 
-Function Get-UserCustomSecurityAttributes {
+Function Get-DevOpsUserCustomSecurityAttributes {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory=$true,Position=0)]
-        [string]$UserPrincipalName#,
-        #[Parameter(Mandatory=$false,Position=1)]
-        #[string]$CustomSecurityAttributeSet = $null,
-        #[Parameter(Mandatory=$false,Position=2)]
-        #[string]$CustomSecurityAttribute = $null
+        [string]$UserId,
+        [Parameter(Mandatory=$false,Position=1)]
+        [string]$CustomSecurityAttributeSet = $null,
+        [Parameter(Mandatory=$false,Position=2)]
+        [string]$CustomSecurityAttribute = $null
     )
     # Check to see if a connection to the Microsoft Graph API has been established
     $objGetGraphConnected = $null
     $objGetGraphConnected = Get-MgContext
+    $psobjUserCustomSecurityAttributes = @()
     if($objGetGraphConnected -eq $null){
         return "No connection to the Microsoft Graph API has been established. Please connect to the Microsoft Graph API before running this function."
     }
@@ -47,12 +48,11 @@ Function Get-UserCustomSecurityAttributes {
     }
 
     # Itterate through the custom security attributes to build a psobject of the attributes
-    $arrUser = Get-MgUser -UserId $UserPrincipalName -Select Id,DisplayName,CustomSecurityAttributes
+    $arrUser = Get-MgUser -UserId $UserId -Select Id,DisplayName,CustomSecurityAttributes
     $arrUser.CustomSecurityAttributes.AdditionalProperties
     $psobjUserCustomSecurityAttributes = @{}
     $arrCustomAttributeSetNames = @()
     $arrCustomAttributeSetNames = $hashCustomAttributesRaw.Keys | Out-String -Stream
-    $psobjUserCustomSecurityAttributes = @()
     foreach($arrCustomAttributeSet in $arrCustomAttributeSetNames){
         $strAttributeSetName = ""
         $strAttributeSetName = $arrCustomAttributeSet
@@ -90,4 +90,6 @@ Function Get-UserCustomSecurityAttributes {
 
 
 
-Get-MgUserCustomSecurityAttributes -UserPrincipalName "mark@imperionllc.com"
+Get-UserCustomSecurityAttributes -UserId "mark@imperionllc.com"
+
+Get-DevOpsUserCustomSecurityAttributes -UserId "mark@imperionllc.com"
