@@ -19,11 +19,11 @@ Function Get-DevOpsUserCustomSecurityAttributes {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory=$true,Position=0)]
-        [string]$UserId<#,
+        [string]$UserId,
         [Parameter(Mandatory=$false,Position=1)]
         [string]$CustomSecurityAttributeSet = $null,
         [Parameter(Mandatory=$false,Position=2)]
-        [string]$CustomSecurityAttribute = $null#>
+        [string]$CustomSecurityAttribute = $null
     )
     # Check to see if a connection to the Microsoft Graph API has been established
     $objGetGraphConnected = $null
@@ -49,32 +49,32 @@ Function Get-DevOpsUserCustomSecurityAttributes {
 
     # Itterate through the custom security attributes to build a psobject of the attributes
     $arrUser = Get-MgUser -UserId $UserId -Select Id,DisplayName,CustomSecurityAttributes
-    $arrUser.CustomSecurityAttributes.AdditionalProperties
-    $psobjUserCustomSecurityAttributes = @{}
+    $hashCustomAttributesRaw = $arrUser.CustomSecurityAttributes.AdditionalProperties
+    $psobjUserCustomSecurityAttributes = @()
     $arrCustomAttributeSetNames = @()
-    $arrCustomAttributeSetNames = $hashCustomAttributesRaw.Keys | Out-String -Stream
+    $arrCustomAttributeSetNames = $hashCustomAttributesRaw.Keys | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
     foreach($arrCustomAttributeSet in $arrCustomAttributeSetNames){
         $strAttributeSetName = ""
-        $strAttributeSetName = $arrCustomAttributeSet
+        $strAttributeSetName = $arrCustomAttributeSet | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
+        Write-Host "strAttributeSetName has a type of $($strAttributeSetName.GetType()) and a value of $strAttributeSetName"
         $hashCustomAttributes = @{}
         $hashCustomAttributes = $mark.CustomSecurityAttributes.AdditionalProperties.$strAttributeSetName
         $hashCustomAttributes.Remove("@odata.type")
         $arrCustomAttributes = @()
-        $arrCustomAttributes = $hashCustomAttributes.Keys | Out-String -Stream
+        $arrCustomAttributes = $hashCustomAttributes.Keys | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
         foreach($Attribute in $arrCustomAttributes){
             $strAttributeName = ""
-            $strAttributeName = $Attribute
+            $strAttributeName = $Attribute | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
+            Write-Host "strAttributeName has a type of $($strAttributeName.GetType()) and a value of $strAttributeName"
             $strAttributeValue = ""
-            $strAttributeValue = $hashCustomAttributes[$Attribute] | Out-String -Stream
-    
+            $strAttributeValue = $hashCustomAttributes[$Attribute] | ConvertTo-Json | ConvertFrom-Json | Out-String -Stream
+            Write-Host "strAttributeValue has a type of $($strAttributeValue.GetType()) and a value of $strAttributeValue"
             $psobjUserCustomSecurityAttributes += [PSCustomObject]@{
                 AttributeSet = $strAttributeSetName
                 AttributeName = $strAttributeName
                 AttributeValue = $strAttributeValue
             }
-            $intProgressStatus ++
         }
-        $intProgressStatus ++
     }
     # Return the profile to standard before exiting
     $strProfileName = Get-MgProfile | Select-Object -ExpandProperty Name
@@ -87,3 +87,5 @@ Function Get-DevOpsUserCustomSecurityAttributes {
     }
         return $psobjUserCustomSecurityAttributes
 }
+
+Get-DevOpsUserCustomSecurityAttributes -UserId "mark@imperionllc.com"
